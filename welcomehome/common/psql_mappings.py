@@ -1,7 +1,7 @@
 class PredefinedQueries:
-    get_item_by_id = "SELECT * FROM Item WHERE ItemID = ${ITEM_ID}"
-    get_order_by_id = "SELECT * FROM Ordered WHERE orderID = ${ORDER_ID}"
-    get_all_pieces_locations = "SELECT p.ItemID, p.pieceNum, p.roomNum, p.shelfNum, l.shelfDescription FROM Piece AS p NATURAL JOIN location AS l WHERE p.ItemID=${IItemID};"
+    get_item_by_id = "SELECT * FROM Item WHERE ItemID = ${ItemID}"
+    get_order_by_id = "SELECT * FROM Ordered WHERE orderID = ${orderID}"
+    get_all_pieces_locations = "SELECT p.ItemID, p.pieceNum, p.roomNum, p.shelfNum, l.shelfDescription FROM Piece AS p NATURAL JOIN location AS l WHERE p.ItemID=${ItemID};"
     get_person_by_username="SELECT * FROM Person WHERE userName='${userName}';"
     get_role_by_username="SELECT roleID FROM Act WHERE userName='${userName}';"
 
@@ -20,6 +20,10 @@ class PredefinedQueries:
     insert_itemin="INSERT INTO ItemIn(ItemID,orderID,found) VALUES (${ItemID},${orderID},${found});"
     insert_ordered="INSERT INTO Ordered(orderID,orderDate,orderNotes,supervisor,client) VALUES (${orderID},'${orderDate}','${orderNotes}','${supervisor}','${client}');"
 
+    update_person = "UPDATE person SET userName='${userName}', password='${password}', fname='${fname}', lname='${lname}', email='${email}' WHERE userName='${userName}';"
+    update_person_phone = "UPDATE PersonPhone SET userName='${userName}', phone='${phone}' WHERE userName='${userName}' AND phone='${phone}';"
+    update_act = "UPDATE Act SET userName='${userName}', roleID='${roleID}' WHERE userName='${userName}' AND roleID='${roleID}';"
+    
     update_ordered="UPDATE Ordered SET orderID=${orderID}, orderDate='${orderDate}', orderNotes='${orderNotes}', supervisor='${supervisor}',client='${client}' WHERE orderID=${orderID};"
     update_itemin="UPDATE ItemIn SET ItemID=${ItemID}, orderID=${orderID},found=${found} WHERE orderID=${orderID} AND ItemID=${ItemID};"
 

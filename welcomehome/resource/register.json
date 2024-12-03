@@ -1,9 +1,9 @@
 {
-    "username":"d@d.com",
-    "phone":["1"],
+    "username":"a@a.com",
+    "phone":["1","2","3"],
     "password":"Hello",
     "fname":"sai",
-    "lname":"D",
-    "email":"d@d.com",
-    "roleID":4
+    "lname":"V",
+    "email":"a@a.com",
+    "roleID":1
 }

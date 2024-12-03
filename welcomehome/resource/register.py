@@ -1,7 +1,7 @@
 from flask_restful import Resource, Api, reqparse, fields, marshal_with, abort
 from welcomehome.common.psql_mappings import *
 from welcomehome.common.util.database_util import DatabaseConn
-#from api import db
+from werkzeug.security import check_password_hash, generate_password_hash
 from flask import request
 
 
@@ -45,7 +45,7 @@ class Register(Resource):
         # INSERTING into the Person Table
         insert_person_payload={
             "userName": request.json.get('username'),
-            "password": request.json.get('password'),
+            "password": generate_password_hash(request.json.get('password')),
             "fname":request.json.get('fname'),
             "lname":request.json.get('lname'),
             "email":request.json.get('email')
