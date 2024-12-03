@@ -5,7 +5,8 @@ class PredefinedQueries:
     get_person_by_username="SELECT * FROM Person WHERE userName='${userName}';"
     get_role_by_username="SELECT roleID FROM Act WHERE userName='${userName}';"
 
-    get_items_in_order="SELECT ItemID FROM Ordered WHERE orderID=${orderID}"
+    get_items_in_order="SELECT ItemID FROM itemin WHERE orderID=${orderID};"
+    get_order_by_id="SELECT * FROM ordered WHERE orderID=${orderID};"
 
     insert_person = "INSERT INTO person(userName,password,fname,lname,email) VALUES ('${userName}','${password}','${fname}','${lname}','${email}');"
     insert_person_phone = "INSERT INTO PersonPhone(userName,phone) VALUES ('${userName}','${phone}');"

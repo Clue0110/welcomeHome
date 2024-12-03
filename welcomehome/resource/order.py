@@ -5,7 +5,7 @@ from flask import request
 import sys
 
 
-class PlaceOrder(Resource):
+class Order(Resource):
 
     @classmethod
     def validatePostPutReqParams(self):
@@ -27,9 +27,34 @@ class PlaceOrder(Resource):
         return True,"Validation Succesfull"
 
     def get(self):
-        res,msg=self.validatePostPutReqParams()
-        return request.json,200
-        pass
+        orderID=int(request.json.get("orderID",None))
+        if not orderID:
+            return {"message":"OrderID cannot be null"},400
+        db=DatabaseConn()
+        result={}
+        try:
+            q_res=db.execute_query_with_args(PredefinedQueries.get_order_by_id,{"orderID":orderID})
+            if len(q_res)==0:
+                return {"message":"Order doesnt exist"},400
+            q_res=q_res[0]
+            result["orderID"]=int(q_res.orderid)
+            result["orderDate"]=str(q_res.orderdate)
+            result["orderNotes"]=q_res.ordernotes
+            result["supervisor"]=q_res.supervisor
+            result["client"]=q_res.client
+        except Exception as e:
+            return {"message":f"GET Failed for Order Details: {str(e)}"}
+        
+        result["items"]=[]
+        try:
+            q_res=db.execute_query_with_args(PredefinedQueries.get_items_in_order,{"orderID":orderID})
+            if len(q_res)==0:
+                return {"message":"Order doesnt exist"},400
+            for item in q_res:
+                result["items"].append(item.itemid)
+        except Exception as e:
+            return {"message":f"GET Failed for Order Items: {str(e)}"}
+        return result,200
 
     def post(self):
         res,msg=self.validatePostPutReqParams()
