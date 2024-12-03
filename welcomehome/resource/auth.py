@@ -32,6 +32,9 @@ class User(UserMixin):
     def set_role(self,role):
         self.role=role
 
+    def get_role(self):
+        return self.role
+
     def set_password(self,password):
         self.password=password
 
@@ -83,10 +86,11 @@ class Login(Resource):
             return {'message': 'Invalid Password, Try Again'}, 400
         #Login the user
         login_user(user)
-        return {"message":"User Logged In"},200
+        return {"message":f"User Logged In #{current_user.get_id()}"},200
     
 class Logout(Resource):
     def post(self):
+        print(f"Logging our Current User: {current_user.get_id()}",file=sys.stdout)
         logout_user()
         return {"message":"User Logged Out"},200
     

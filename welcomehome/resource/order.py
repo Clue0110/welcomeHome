@@ -1,9 +1,10 @@
 from flask_restful import Resource, Api, reqparse, fields, marshal_with, abort
 from welcomehome.common.psql_mappings import *
 from welcomehome.common.util.database_util import DatabaseConn
-from flask import request
+from flask import request, session
 import sys
-
+from flask_login import current_user, login_required
+from welcomehome.resource.auth import load_user 
 
 class Order(Resource):
 
@@ -102,3 +103,73 @@ class Order(Resource):
             return {"message":f"OrderCreationError:{str(e)}"},400
         
         return {"message":f"Succesfully Created the Order with OrderID: {request.json.get('orderID')}"},200
+
+
+class OrderStart(Resource):
+    def post(self):
+        #Validate if Current User is a Staff Member
+        if not RoleMappings.isStaff(current_user.get_role()):
+            return {"message":"Only Staff Members are authorized to start an order"},400
+        #Validate if the Client Exists in Session
+        if not session.get("client",None):
+            if not request.json.get("client",None):
+                return {"message":"Client ID is required"},400
+            #Small Validation if the Client Exists in the DB
+            client_user=load_user(request.json.get("client"))
+            if client_user==None:
+                return {"message":"Client does not exist"}
+            if not RoleMappings.isClient(client_user.get_role()):
+                return {"message":f"User not registered as a Client"}
+            session["client"]=request.json.get("client")
+        else:
+            if not session.get("client")==request.json.get("client"):
+                return {"message":f"Order Already in Progress for Client: {session.get('client')}"},400
+        
+        # Generate a new orderID or continue a previous orderID
+        if not session.get("orderID",None):
+            db=DatabaseConn()
+            prev_orderid=-1
+            try:
+                q_res=db.execute_query(PredefinedQueries.get_highest_orderid)
+                if len(q_res)==0:
+                    prev_orderid=0
+                else:
+                    q_res=q_res[0]
+                    prev_orderid=int(q_res.max_order_id)
+            except Exception as e:
+                return {"message":"DBError while generating new orderID"},500
+
+            session["orderID"]=prev_orderid+1
+        return {"orderID":session.get("orderID")},
+
+class AddItemToOrder(Resource):
+    def post(self):
+        #Check if orderID is present in the session
+        #Check if our cart is present
+        #Add the Item to the cart
+        pass
+
+    def delete(self):
+        #Remove the Item from the cart (present in session)
+        pass
+
+class Inventory(Resource):
+    def get(self):
+        #List all items and remove items from ItemsIn table
+        #Now exclude or mark the items that are in cart
+        #Get cart items from session variable
+        pass
+
+class PlaceOrder(Resource):
+    def post(self):
+        #Create the entry for the Ordered table (resuse the existing API)
+        #Create the entries for the Item in Table (resuse the existing API)
+        #Remove the orderID from the session variable
+        #Remove the cart from the session variable
+        pass
+
+    def delete(self):
+        #Empty out the session variable:
+        #   Remove the orderID
+        #   Remove the cart
+        pass

@@ -7,6 +7,7 @@ class PredefinedQueries:
 
     get_items_in_order="SELECT ItemID FROM itemin WHERE orderID=${orderID};"
     get_order_by_id="SELECT * FROM ordered WHERE orderID=${orderID};"
+    get_highest_orderid="SELECT max(orderid) AS max_order_id FROM Ordered;"
 
     insert_person = "INSERT INTO person(userName,password,fname,lname,email) VALUES ('${userName}','${password}','${fname}','${lname}','${email}');"
     insert_person_phone = "INSERT INTO PersonPhone(userName,phone) VALUES ('${userName}','${phone}');"
