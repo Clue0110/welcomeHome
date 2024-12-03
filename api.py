@@ -8,6 +8,7 @@ from flask_restful import Resource, Api, reqparse, fields, marshal_with, abort
 #from welcomehome.common.util.database_util import DatabaseConn
 from welcomehome.resource.register import Register
 from welcomehome.resource.donation import Donation
+from welcomehome.resource.order import PlaceOrder
 
 
 
@@ -25,6 +26,7 @@ app = Flask(__name__)
 api=Api(app=app)
 api.add_resource(Register,'/api/register/')
 api.add_resource(Donation,'/api/donation/')
+api.add_resource(PlaceOrder,'/api/order/place')
 
 @app.route('/')
 def home():

@@ -5,6 +5,8 @@ class PredefinedQueries:
     get_person_by_username="SELECT * FROM Person WHERE userName='${userName}';"
     get_role_by_username="SELECT roleID FROM Act WHERE userName='${userName}';"
 
+    get_items_in_order="SELECT ItemID FROM Ordered WHERE orderID=${orderID}"
+
     insert_person = "INSERT INTO person(userName,password,fname,lname,email) VALUES ('${userName}','${password}','${fname}','${lname}','${email}');"
     insert_person_phone = "INSERT INTO PersonPhone(userName,phone) VALUES ('${userName}','${phone}');"
     insert_act = "INSERT INTO Act(userName,roleID) VALUES ('${userName}','${roleID}');"
@@ -13,6 +15,13 @@ class PredefinedQueries:
     insert_item_without_id = "INSERT INTO Item(iDescription,photo,color,isNew,hasPieces,material,mainCategory,subCategory) VALUES ('${iDescription}','${photo}','${color}',${isNew},${hasPieces},'${material}','${mainCategory}','${subCategory}') RETURNING ItemID;"
     insert_donatedby="INSERT INTO DonatedBy(ItemID,userName,donateDate) VALUES (${ItemID},'${userName}','${donateDate}');" # donateDate String?
     insert_piece="INSERT INTO Piece(ItemID,pieceNum,pDescription,length,width,height,roomNum,shelfNum,pNotes) VALUES (${ItemID},${pieceNum},'${pDescription}',${length},${width},${height},${roomNum},${shelfNum},'${pNotes}');"
+
+    insert_itemin="INSERT INTO ItemIn(ItemID,orderID,found) VALUES (${ItemID},${orderID},${found});"
+    insert_ordered="INSERT INTO Ordered(orderID,orderDate,orderNotes,supervisor,client) VALUES (${orderID},'${orderDate}','${orderNotes}','${supervisor}','${client}');"
+
+    update_ordered="UPDATE Ordered SET orderID=${orderID}, orderDate='${orderDate}', orderNotes='${orderNotes}', supervisor='${supervisor}',client='${client}' WHERE orderID=${orderID};"
+    update_itemin="UPDATE ItemIn SET ItemID=${ItemID}, orderID=${orderID},found=${found} WHERE orderID=${orderID} AND ItemID=${ItemID};"
+
 
 class Constants:
     ROLE_STAFF="staff"
