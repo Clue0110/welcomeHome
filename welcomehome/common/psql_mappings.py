@@ -4,6 +4,7 @@ class PredefinedQueries:
     get_all_pieces_locations = "SELECT p.ItemID, p.pieceNum, p.roomNum, p.shelfNum, l.shelfDescription FROM Piece AS p NATURAL JOIN location AS l WHERE p.ItemID=${ItemID};"
     get_person_by_username="SELECT * FROM Person WHERE userName='${userName}';"
     get_role_by_username="SELECT roleID FROM Act WHERE userName='${userName}';"
+    get_distinct_itemids_in_itemin="SELECT DISTINCT(ItemID) FROM ItemIn;"
 
     get_items_in_order="SELECT ItemID FROM itemin WHERE orderID=${orderID};"
     get_order_by_id="SELECT * FROM ordered WHERE orderID=${orderID};"

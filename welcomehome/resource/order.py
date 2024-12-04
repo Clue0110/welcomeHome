@@ -105,138 +105,6 @@ class Order(Resource):
         
         return {"message":f"Succesfully Created the Order with OrderID: {request.json.get('orderID')}"},200
 
-class OrderUtils_old:
-    def safe_intialize_order_storage():
-        if not session.get("orders",None):
-            session["orders"]={}
-
-    def get_order_with_orderid(OrderID):
-        if type(OrderID)==int:
-            OrderID=str(OrderID)
-        OrderUtils.safe_intialize_order_storage()
-        return session["orders"].get(OrderID,None)
-    
-    def get_order_with_clientid(client):
-        OrderUtils.safe_intialize_order_storage()
-        for orderID in session["orders"]:
-            if session["orders"][orderID]["client"]==client:
-                return session["orders"][orderID]
-        return None
-    
-    def get_order_with_orderid_or_clientid(OrderID=None,client=None):
-        if not OrderID and not client:
-            return None
-        if OrderID:
-            return OrderUtils.get_order_with_orderid(OrderID)
-        if client:
-            return OrderUtils.get_order_with_clientid(client)
-        return None
-    
-    def add_new_order_to_storage(OrderID,client):
-        OrderUtils.safe_intialize_order_storage()
-        if type(OrderID)==int:
-            OrderID=str(OrderID)
-        session["orders"][OrderID]={}
-        session["orders"][OrderID]["OrderID"]=OrderID
-        session["orders"][OrderID]["client"]=client
-        session["orders"][OrderID]["cart"]=[]
-        return session["orders"][OrderID]
-    
-    def give_me_new_order_id():
-        OrderUtils.safe_intialize_order_storage()
-        max_order_id=-1
-        for orderID in session["orders"]:
-            max_order_id=max(max_order_id,orderID)
-        #Finding the Next Max Key from the Database
-        db=DatabaseConn()
-        prev_orderid=-1
-        try:
-            q_res=db.execute_query(PredefinedQueries.get_highest_orderid)
-            if len(q_res)==0:
-                prev_orderid=0
-            else:
-                q_res=q_res[0]
-                prev_orderid=int(q_res.max_order_id)
-        except Exception as e:
-            return None
-        #Returnig the New Order ID
-        max_order_id=max(prev_orderid,max_order_id)
-        return max_order_id+1
-
-    def validate_item_with_id(ItemID):
-        db=DatabaseConn()
-        try:
-            q_res=db.execute_query_with_args(PredefinedQueries.get_item_by_id,{"ItemID":ItemID})
-            if len(q_res)==0:
-                return False
-        except Exception as e:
-            return False
-        return True
-    
-    def add_item_to_order(OrderID,ItemID):
-        OrderUtils.safe_intialize_order_storage()
-        # Checking if this Item exists in Database
-        if not OrderUtils.validate_item_with_id(ItemID):
-            return None
-        # Fetch the appropriate order
-        current_order=OrderUtils.get_order_with_orderid(OrderID)
-        if current_order==None:
-            return None
-        # If Item is already in the Cart
-        if ItemID in current_order["cart"]:
-            return None
-        #session["orders"][str(current_order["OrderID"])]["cart"].append(ItemID)
-        current_order["cart"].append(ItemID)
-        #session["orders"][str(current_order["OrderID"])]["cart"]=current_order["cart"]
-        #return session["orders"][str(current_order["OrderID"])]["cart"]
-        return current_order["cart"]
-    
-    def remove_order_from_storage(OrderID):
-        if type(OrderID)==int:
-            OrderID=str(OrderID)
-        return session["orders"].pop(OrderID)
-    
-    def place_order(OrderID=None,client=None):
-        if type(OrderID)==int:
-            OrderID=str(OrderID)
-        OrderUtils.safe_intialize_order_storage()
-        if OrderID:
-            if not OrderID in session["orders"]:
-                return None
-        elif client:
-            current_order=OrderUtils.get_order_with_clientid(client)
-            if current_order==None:
-                return None
-            OrderID=current_order["OrderID"]
-        
-        return OrderUtils.remove_order_from_storage(OrderID)
-    
-    def get_all_items_in_carts():
-        OrderUtils.safe_intialize_order_storage()
-        cart_items=[]
-        for OrderID in session["orders"]:
-            for item in session["orders"][OrderID]["cart"]:
-                cart_items.append(item)
-        return cart_items
-    
-    def get_current_shopping_cart(OrderID):
-        current_order=OrderUtils.get_order_with_orderid(OrderID)
-        if current_order==None:
-            return None
-        return current_order.get("cart",None)
-    
-    def remove_item_from_shopping_cart(OrderID,ItemID):
-        current_order=OrderUtils.get_order_with_orderid(OrderID)
-        if not current_order:
-            return None
-        if ItemID in current_order["cart"]:
-            current_order.remove(ItemID)
-            return current_order["cart"]
-        return current_order["cart"]
-    
-    def clear_session():
-        session["orders"]={}
-
 class OrderObject:
     def __init__(self,json_str=None,args=None):
         if not args==None:
@@ -587,7 +455,16 @@ class OrderPlace(Resource):
             return {"message":"Supervisor does not exist"},400
         if not RoleMappings.isStaff(supervisor.get_role()):
             return {"message":f"User not registered as a Staff"},400
-        #TODO Add a Validation Check the current item isnt in ItemIn Table
+        #Add a Validation Check the current item isnt in ItemIn Table
+        db=DatabaseConn()
+        try:
+            q_res=db.execute_query(PredefinedQueries.get_distinct_itemids_in_itemin)
+            ordered_items=[]
+            for item in q_res:
+                ordered_items.append(int(item.itemid))
+        except Exception as e:
+            return {"message":f"DBReadError: Error while Validating if Items are not already placed in a different order: {str(e)}"},400
+        
         #Creating an Entry for the Ordered Table
         insert_ordered_payload={
             "orderID":int(current_order["OrderID"]),
@@ -601,6 +478,8 @@ class OrderPlace(Resource):
             db.insert_query_with_values(PredefinedQueries.insert_ordered,insert_ordered_payload)
             #Adding Each Item in the ItemIn Table
             for ItemID in current_cart:
+                if ItemID in ordered_items:
+                    return {"message":f"Item: {ItemID} is not available, Please Remove it from the Order and try again"},400
                 insert_itemin_payload={
                     "ItemID":ItemID,
                     "orderID":int(current_order["OrderID"]),
