@@ -17,6 +17,15 @@ class PredefinedQueries:
     get_inventory_items="SELECT * FROM Item WHERE ItemId NOT IN (SELECT distinct(ItemID) from ItemIn);"
     get_inventory_items_with_category="SELECT * FROM Item WHERE mainCategory='${mainCategory}' AND ItemId NOT IN (SELECT distinct(ItemID) from ItemIn);"
     get_inventory_items_with_subcategory="SELECT * FROM Item WHERE mainCategory='${mainCategory}' AND subCategory='${subCategory}' AND ItemId NOT IN (SELECT distinct(ItemID) from ItemIn);"
+    get_volunteer_task_ranking="WITH task_record(orderID,username) AS ((SELECT orderID, act.username FROM Ordered JOIN Act ON (Ordered.supervisor=Act.username) WHERE Act.roleid='2') UNION (SELECT orderID, act.username FROM Delivered Join Act ON (Delivered.username=Act.username) WHERE Act.roleid='2')) SELECT COUNT(DISTINCT orderID) AS task_count,username FROM task_record GROUP BY username ORDER BY COUNT(DISTINCT orderID);"
+    #get_volunteer_task_ranking_between_dates="WITH task_record(orderID,username) AS ((SELECT orderID, act.username FROM Ordered JOIN Act ON (Ordered.supervisor=Act.username) WHERE Act.roleid='2') UNION (SELECT orderID, act.username FROM Delivered Join Act ON (Delivered.username=Act.username) WHERE Act.roleid='2')) SELECT COUNT(DISTINCT orderID) AS task_count,username FROM task_record GROUP BY username ORDER BY COUNT(DISTINCT orderID);"
+    get_volunteer_task_ranking_between_dates='''
+    WITH task_record(orderID,username) AS 
+        ((SELECT orderID, act.username FROM Ordered JOIN Act ON (Ordered.supervisor=Act.username) WHERE Act.roleid='2' AND (orderDate BETWEEN '${start_date}' AND '${end_date}')) 
+    UNION 
+        (SELECT orderID, act.username FROM Delivered Join Act ON (Delivered.username=Act.username) WHERE Act.roleid='2' AND (date BETWEEN '${start_date}' AND '${end_date}'))) 
+    SELECT COUNT(DISTINCT orderID) AS task_count,username FROM task_record GROUP BY username ORDER BY COUNT(DISTINCT orderID);
+    '''
 
     insert_person = "INSERT INTO person(userName,password,fname,lname,email) VALUES ('${userName}','${password}','${fname}','${lname}','${email}');"
     insert_person_phone = "INSERT INTO PersonPhone(userName,phone) VALUES ('${userName}','${phone}');"

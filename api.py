@@ -44,6 +44,8 @@ api.add_resource(OrderPlace,'/api/order/place') #POST
 api.add_resource(OrderDelete,'/api/order/delete') #DELETE
 # FEATURE 8
 api.add_resource(PersonOrders,'/api/person-orders/') #GET
+# FEATURE 9
+api.add_resource(VolunteerScoreboard,'/api/volunteer-scoreboard') #GET
 # FEATURE 10
 api.add_resource(OrderStatus,'/api/order/status') #POST
 # OTHERS
