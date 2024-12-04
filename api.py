@@ -22,17 +22,17 @@ app.config["SESSION_TYPE"] = "filesystem"  # Or "redis", "memcached", etc.
 #Session(app)
 
 api=Api(app=app)
-api.add_resource(Register,'/api/register/')
-api.add_resource(Donation,'/api/donation/')
+api.add_resource(Register,'/api/register/') #POST
+api.add_resource(Donation,'/api/donation/') #POST
 api.add_resource(Person,'/api/person/update/') #Only for developement purpose
-api.add_resource(Order,'/api/order/')
-api.add_resource(Login,'/api/login/',endpoint="login")
-api.add_resource(Logout,'/api/logout/',endpoint="logout")
-api.add_resource(OrderStart,'/api/order/start')
-api.add_resource(OrderModify,'/api/order/modify')
-api.add_resource(OrderPlace,'/api/order/place')
-api.add_resource(OrderDelete,'/api/order/delete')
-api.add_resource(Inventory,'/api/inventory')
+api.add_resource(Order,'/api/order/') #GET,POST
+api.add_resource(Login,'/api/login/',endpoint="login") #POST
+api.add_resource(Logout,'/api/logout/',endpoint="logout") #POST
+api.add_resource(OrderStart,'/api/order/start') #POST
+api.add_resource(OrderModify,'/api/order/modify') #POST, DELETE
+api.add_resource(OrderPlace,'/api/order/place') #POST
+api.add_resource(OrderDelete,'/api/order/delete') #DELETE
+api.add_resource(Inventory,'/api/inventory') #GET
 
 api.add_resource(Item,'/api/item/locations') #GET
 api.add_resource(OrderLocations,'/api/order/locations') #GET
