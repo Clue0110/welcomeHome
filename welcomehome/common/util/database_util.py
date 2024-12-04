@@ -38,6 +38,12 @@ class DatabaseConn:
     def insert_query_with_values_return_id(self,query,arguments):
         pass
 
+    def update_query_with_values(self,query,arguments):
+        query_template=Template(query)
+        query_str=query_template.safe_substitute(arguments)
+        print(f"Executing Query: {query_str}",file=sys.stdout)
+        self.db_conn.execute(text(query_str))
+
     def commit(self):
         self.db_conn.execute(text("commit;"))
     
