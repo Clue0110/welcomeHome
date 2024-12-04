@@ -554,6 +554,12 @@ class OrderStatus(Resource):
         #   "status":<status>
         #   "date":<delivery date>
 
+        #Quick Validation to Check if status and date are not empty or null
+        if not request.json.get("status",None):
+            return {"message":"Status cannot be empty or null"},400
+        if not request.json.get("date",None):
+            return {"message":"date cannot be empty or null"},400
+
         #Checking if the orderID is empty or null
         OrderID=request.json.get("OrderID",None)
         if OrderID==None:
@@ -568,12 +574,29 @@ class OrderStatus(Resource):
             return {"message":f"DBReadError: Error while validating the OrderID Delivery Status:{str(e)}"},400
 
         #Checking if the current_user is delivering/supervising the order the order
-        #current_user -> use this variable provided by login manager
-        #If Volunteer Update the status only for his Row
-        #If Supervisor Update the status for all the rows
-
-        #Update Command for both scenarios one is an iteration, one is just one row modification
-        pass
+        db=DatabaseConn()
+        isSupervisor=False
+        try:
+            q_res=db.execute_query_with_args(PredefinedQueries.get_role_by_orderid_and_userid,{"orderID":OrderID,"username":current_user.get_id()})
+            if len(q_res)==0:
+                return {"message":f"This user: {current_user.get_id()} is not a Supervisor or a Volunteer for the order: {OrderID}"},400
+            q_res=q_res[0]
+            if q_res.supervisor==current_user.get_id():
+                isSupervisor=True
+        except Exception as e:
+            return {"message":f"Error while checking Supervisor/Volunteer Status: {str(e)}"},400
+        
+        #Updating the Order Status
+        new_status=request.json.get("status")
+        new_date=request.json.get("date")
+        db=DatabaseConn()
+        try:
+            db.update_query_with_values(PredefinedQueries.update_order_status_by_orderid,{"status":new_status,"date":new_date,"orderID":OrderID})
+            db.commit()
+        except Exception as e:
+            return {"message":f"Error in Updating the Order Status: {str(e)}"},400
+        
+        return {"message":f"Successfully Updated OrderID: {OrderID} with status: {new_status} and date: {new_date}"},200
 
 
         

@@ -1,6 +1,7 @@
 from flask_restful import Resource, Api, reqparse, fields, marshal_with, abort
 from welcomehome.common.psql_mappings import *
 from welcomehome.common.util.database_util import DatabaseConn
+from flask_login import current_user, login_required
 from flask import request
 import sys
 
@@ -22,7 +23,8 @@ class DonatedItem():
         return self.SQL_DATA["piece"]
     
     def get_current_user_id(self):
-        return self.request_json_payload["current_user"]
+        return current_user.get_id()
+        #return self.request_json_payload["current_user"]
     
     def get_donor_user_id(self):
         return self.request_json_payload["donor_username"]
@@ -142,4 +144,4 @@ class Donation(Resource):
             db.commit()
         except Exception as e:
             return {"message":f"DBInsertionError while processing Donation: {str(e)}"},400
-        return {"message":"Donation Accepted Succesfully"}
+        return {"message":"Donation Accepted Succesfully"},200
