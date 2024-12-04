@@ -546,6 +546,34 @@ class OrderLocations(Resource):
             return {"message":f"Error while extracting Pieces Locations: {str(e)}"},400
         
         return {"locations":locations,"items":list(items)},200
+    
+class OrderStatus(Resource):
+    def post(self):
+        #Input:
+        #   "OrderID":<order_id>
+        #   "status":<status>
+        #   "date":<delivery date>
+
+        #Checking if the orderID is empty or null
+        OrderID=request.json.get("OrderID",None)
+        if OrderID==None:
+            return {"message":"Order Empty Cannot be Null or Empty"},400
+        #Check if the OrderID is in the Delivered Table (Delivery in Progress) or Delivery Process Initiated
+        db=DatabaseConn()
+        try:
+            q_res=db.execute_query_with_args(PredefinedQueries.get_delivery_status_by_orderid,{"orderID":OrderID})
+            if not len(q_res)>0:
+                return {"message":f"Order with OrderID: {OrderID} is not ready for Delivery"},400
+        except Exception as e:
+            return {"message":f"DBReadError: Error while validating the OrderID Delivery Status:{str(e)}"},400
+
+        #Checking if the current_user is delivering/supervising the order the order
+        #current_user -> use this variable provided by login manager
+        #If Volunteer Update the status only for his Row
+        #If Supervisor Update the status for all the rows
+
+        #Update Command for both scenarios one is an iteration, one is just one row modification
+        pass
 
 
         
