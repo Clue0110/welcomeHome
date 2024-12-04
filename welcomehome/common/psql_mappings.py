@@ -9,6 +9,10 @@ class PredefinedQueries:
     get_order_by_id="SELECT * FROM ordered WHERE orderID=${orderID};"
     get_highest_orderid="SELECT max(orderid) AS max_order_id FROM Ordered;"
 
+    get_inventory_items="SELECT * FROM Item WHERE ItemId NOT IN (SELECT distinct(ItemID) from ItemIn);"
+    get_inventory_items_with_category="SELECT * FROM Item WHERE mainCategory='${mainCategory}' AND ItemId NOT IN (SELECT distinct(ItemID) from ItemIn);"
+    get_inventory_items_with_subcategory="SELECT * FROM Item WHERE mainCategory='${mainCategory}' AND subCategory='${subCategory}' AND ItemId NOT IN (SELECT distinct(ItemID) from ItemIn);"
+
     insert_person = "INSERT INTO person(userName,password,fname,lname,email) VALUES ('${userName}','${password}','${fname}','${lname}','${email}');"
     insert_person_phone = "INSERT INTO PersonPhone(userName,phone) VALUES ('${userName}','${phone}');"
     insert_act = "INSERT INTO Act(userName,roleID) VALUES ('${userName}','${roleID}');"

@@ -1,3 +1,5 @@
-INSERT INTO person(userName,password,fname,lname,email) VALUES ('${userName}','${password}','${fname}','${lname}','${email}');
+WITH orderedItems(ItemID) AS (SELECT ItemID FROM ItemIn) SELECT * FROM Item WHERE mainCategory='Furniture' AND ItemId NOT IN (select * from orderedItems);
 
-UPDATE person SET userName='${userName}', password='${password}', fname='${fname}', lname='${lname}', email='${email}' WHERE userName='${userName}';
+WITH orderedItems(ItemID) AS (SELECT ItemID FROM ItemIn) 
+
+SELECT * FROM Item WHERE mainCategory='${mainCategory}' AND subCategory='${subCategory}' AND ItemId NOT IN (SELECT distinct(ItemID) from ItemIn);

@@ -477,11 +477,11 @@ class OrderModify(Resource):
         # Input: "client:<client ID>
         # Input: "OrderID":<OrderID>
 
-        # Checking if the Order Exists
-        # Get the order with Client ID ot Order ID
         #OrderUtils.clear_session()
         #return {},400
 
+        # Checking if the Order Exists
+        # Get the order with Client ID ot Order ID
         current_order=OrderUtils.get_order_with_orderid_or_clientid(OrderID=request.json.get("OrderID",None),
                                                                     client=request.json.get("client",None))
         #print(f"current_order={current_order}",file=sys.stdout)
@@ -500,11 +500,52 @@ class OrderModify(Resource):
 
 class Inventory(Resource):
     def get(self):
-        #List all items and remove items from ItemsIn table
-        #Now exclude or mark the items that are in cart
-        #If category or subcategory is set, filter based on that too
-        #Get cart items from session variable
-        pass
+        #Inputs:
+        #   client or OrderID
+        #   category -> Priority 1
+        #   sub_category -> Priority 2 (Needs Category too)
+
+        #Get list of all Items
+        category=request.json.get("mainCategory",None)
+        sub_category=request.json.get("sub_category",None)
+        get_inventory_query=PredefinedQueries.get_inventory_items_with_subcategory
+        get_inventory_payload={"mainCategory":category,"subCategory":sub_category}
+        if not sub_category:
+            get_inventory_query=PredefinedQueries.get_inventory_items_with_category
+            get_inventory_payload.pop("subCategory")
+        if not category:
+            get_inventory_query=PredefinedQueries.get_inventory_items
+            get_inventory_payload.pop("mainCategory")
+        
+        # Getting the current Cart Items by either clientid or orderid
+        current_order=OrderUtils.get_order_with_orderid_or_clientid(OrderID=request.json.get("OrderID",None),
+                                                                    client=request.json.get("client",None))
+        if current_order==None:
+            return {"message":"Order Does not exist for this Client or OrderID. Please Create an Order to view Inventory"},400
+        current_cart=OrderUtils.get_current_shopping_cart(current_order["OrderID"])
+        
+        # Fetching the Inventory Items
+        db=DatabaseConn()
+        inventory=[]
+        try:
+            q_res=db.execute_query_with_args(get_inventory_query,get_inventory_payload)
+            for item_row in q_res:
+                if item_row.itemid in current_cart:
+                    continue
+                inventory_dict={
+                    "itemid":item_row.itemid,
+                    "idescription":item_row.idescription,
+                    "photo":item_row.photo,
+                    "isnew":item_row.isnew,
+                    "haspieces":item_row.haspieces,
+                    "material":item_row.material,
+                    "maincategory":item_row.maincategory,
+                    "subcategory":item_row.subcategory
+                }
+                inventory.append(inventory_dict)
+        except Exception as e:
+            return {"message":"DBRead Error while extracting Inventory"},400
+        return {"inventory":inventory},200
 
 class OrderPlace(Resource):
     def validatePostRequestArguments(self):
@@ -546,7 +587,7 @@ class OrderPlace(Resource):
             return {"message":"Supervisor does not exist"},400
         if not RoleMappings.isStaff(supervisor.get_role()):
             return {"message":f"User not registered as a Staff"},400
-        
+        #TODO Add a Validation Check the current item isnt in ItemIn Table
         #Creating an Entry for the Ordered Table
         insert_ordered_payload={
             "orderID":int(current_order["OrderID"]),

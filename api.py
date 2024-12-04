@@ -31,6 +31,7 @@ api.add_resource(OrderStart,'/api/order/start')
 api.add_resource(OrderModify,'/api/order/modify')
 api.add_resource(OrderPlace,'/api/order/place')
 api.add_resource(OrderDelete,'/api/order/delete')
+api.add_resource(Inventory,'/api/inventory')
 
 @app.route('/')
 def home():
