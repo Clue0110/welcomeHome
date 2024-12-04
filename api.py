@@ -10,6 +10,7 @@ from welcomehome.resource.register import Register
 from welcomehome.resource.donation import Donation
 from welcomehome.resource.order import *
 from welcomehome.resource.auth import *
+from welcomehome.resource.item import Item
 
 
 app = Flask(__name__)
@@ -32,6 +33,9 @@ api.add_resource(OrderModify,'/api/order/modify')
 api.add_resource(OrderPlace,'/api/order/place')
 api.add_resource(OrderDelete,'/api/order/delete')
 api.add_resource(Inventory,'/api/inventory')
+
+api.add_resource(Item,'/api/item/locations') #GET
+api.add_resource(OrderLocations,'/api/order/locations') #GET
 
 @app.route('/')
 def home():

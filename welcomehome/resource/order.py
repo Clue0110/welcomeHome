@@ -509,3 +509,43 @@ class OrderDelete(Resource):
         if removed_order==None:
             return {"message":f"Error while removing Order:{current_order['OrderID']} from Storage"},400
         return {"message":f"Removed Order: {removed_order["OrderID"]} with the Items: {removed_order["cart"]}"},200
+    
+class OrderLocations(Resource):
+    #Input: "OrderID":<order_id> or "client":<clien_id>
+    def get(self):
+        OrderID=request.json.get("OrderID",None)
+        #Checking if the OrderID is empty
+        if OrderID==None:
+            return {"message":"Order Empty Cannot be Null or Empty"},400
+        #Check if the orderID exists
+        db=DatabaseConn()
+        try:
+            q_res=db.execute_query_with_args(PredefinedQueries.get_order_by_id,{"orderID":OrderID})
+            if not len(q_res)>0:
+                return {"message":f"Order with OrderID: {OrderID} does not exist"},400
+        except Exception as e:
+            return {"message":f"DBReadError: Error while validating the OrderID:{str(e)}"},400
+
+        #Getting all Items in the Order
+        db=DatabaseConn()
+        items=set()
+        locations=[]
+        try:
+            q_res=db.execute_query_with_args(PredefinedQueries.get_all_pieces_locations_using_orderid,{"orderID":OrderID})
+            for piece in q_res:
+                items.add(piece.itemid)
+                location_info={
+                    "itemid":piece.itemid,
+                    "piecenum":piece.piecenum,
+                    "roomnum":piece.roomnum,
+                    "shelfnum":piece.shelfnum,
+                    "shelfdescription":piece.shelfdescription
+                }
+                locations.append(location_info)
+        except Exception as e:
+            return {"message":f"Error while extracting Pieces Locations: {str(e)}"},400
+        
+        return {"locations":locations,"items":list(items)},200
+
+
+        
