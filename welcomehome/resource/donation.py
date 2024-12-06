@@ -3,6 +3,7 @@ from welcomehome.common.psql_mappings import *
 from welcomehome.common.util.database_util import DatabaseConn
 from flask_login import current_user, login_required
 from flask import request
+from welcomehome.resource.auth import load_user
 import sys
 
 class DonatedItem():
@@ -101,18 +102,15 @@ class Donation(Resource):
     @classmethod
     def validatePostReqParams(self,db=None,donatedItem=None):
         # Validation 1: Checking if the donor username is registered as a Donor
-        res=db.execute_query_with_args(PredefinedQueries.get_role_by_username,{"userName":donatedItem.get_donor_user_id()})
-        if len(res)==0:
+        donor_user=load_user(donatedItem.get_donor_user_id())
+        if donor_user==None:
             return False,"Donor Doesnt Exist"
-        if not RoleMappings.isDonor(id=int(res[0].roleid)):
+        if not RoleMappings.isDonor(username=donor_user.get_id()):
             return False,"Donor Not Registered"
         
         # Validation 2: Checking if the current user is a staff member
-        res=db.execute_query_with_args(PredefinedQueries.get_role_by_username,{"userName":donatedItem.get_current_user_id()})
-        if len(res)==0:
-            return False,"Staff Member does not exist"
-        if not RoleMappings.isStaff(id=int(res[0].roleid)):
-            return False,"Non Staff Member is not Authrized to Accept Donation"
+        if not RoleMappings.isStaff(username=current_user.get_id()):
+            return False, "Non Staff Member is not Authrized to Accept Donation"
         
         #Additional Validations
         pass
