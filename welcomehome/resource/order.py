@@ -374,8 +374,10 @@ class Inventory(Resource):
         #   sub_category -> Priority 2 (Needs Category too)
 
         #Get list of all Items
-        category=request.json.get("mainCategory",None)
-        sub_category=request.json.get("sub_category",None)
+        category=request.args.get("mainCategory",None)
+        sub_category=request.args.get("sub_category",None)
+        OrderID=request.args.get("OrderID",None)
+        client=request.args.get("client",None)
         get_inventory_query=PredefinedQueries.get_inventory_items_with_subcategory
         get_inventory_payload={"mainCategory":category,"subCategory":sub_category}
         if not sub_category:
@@ -386,8 +388,8 @@ class Inventory(Resource):
             get_inventory_payload.pop("mainCategory")
         
         # Getting the current Cart Items by either clientid or orderid
-        current_order=OrderUtils.get_order_with_orderid_or_clientid(OrderID=request.json.get("OrderID",None),
-                                                                    client=request.json.get("client",None))
+        current_order=OrderUtils.get_order_with_orderid_or_clientid(OrderID=OrderID,
+                                                                    client=client)
         if current_order==None:
             return {"message":"Order Does not exist for this Client or OrderID. Please Create an Order to view Inventory"},400
         current_cart=OrderUtils.get_current_shopping_cart(current_order["OrderID"])
@@ -511,9 +513,9 @@ class OrderDelete(Resource):
         return {"message":f"Removed Order: {removed_order["OrderID"]} with the Items: {removed_order["cart"]}"},200
     
 class OrderLocations(Resource):
-    #Input: "OrderID":<order_id> or "client":<clien_id>
+    #Input: "OrderID":<order_id>
     def get(self):
-        OrderID=request.json.get("OrderID",None)
+        OrderID=request.args.get("OrderID",None)
         #Checking if the OrderID is empty
         if OrderID==None:
             return {"message":"Order Empty Cannot be Null or Empty"},400
