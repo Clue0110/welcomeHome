@@ -14,7 +14,7 @@ class Item(Resource):
     def get(self):
         # Input: "ItemID":<item_id>
         #Validating if the ItemID is valid
-        ItemID=request.json.get("ItemID",None)
+        ItemID=request.args.get("ItemID",None)
         if ItemID==None:
             return {"message":"RequestParametersValidationFailed: ItemID value cannot be Null or empty"},400
         db=DatabaseConn()

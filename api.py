@@ -12,11 +12,13 @@ from welcomehome.resource.order import *
 from welcomehome.resource.auth import *
 from welcomehome.resource.item import Item
 from welcomehome.resource.person import *
+from flask_cors import CORS
 
 
 app = Flask(__name__)
 app.secret_key="i_wish_i_cou1d_sleep_pe@cefu11y"
 login_manager.init_app(app)
+CORS(app,supports_credentials=True)
 
 app.config["SESSION_PERMANENT"] = False
 app.config["SESSION_TYPE"] = "filesystem"  # Or "redis", "memcached", etc.

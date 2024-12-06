@@ -1,3 +1,6 @@
+from welcomehome.common.util.database_util import DatabaseConn
+import sys
+
 class PredefinedQueries:
     get_item_by_id = "SELECT * FROM Item WHERE ItemID = ${ItemID}"
     get_order_by_id = "SELECT * FROM Ordered WHERE orderID = ${orderID}"
@@ -62,42 +65,60 @@ class RoleMappings:
         Constants.ROLE_DONOR:4
     }
 
-    def isStaff(id=None,role=None):
-        if id:
-            if RoleMappings.role_name_id_mapping.get(Constants.ROLE_STAFF,0)==id: 
-                return True
-            return False
-        if role:
-            if role.lower()==Constants.ROLE_STAFF:
-                return True
-        return False
-    
-    def isDonor(id=None,role=None):
-        if id:
-            if RoleMappings.role_name_id_mapping.get(Constants.ROLE_DONOR,0)==id: 
-                return True
-            return False
-        if role:
-            if role.lower()==Constants.ROLE_DONOR:
-                return True
-        return False
-    
-    def isClient(id=None,role=None):
-        if id:
-            if RoleMappings.role_name_id_mapping.get(Constants.ROLE_CLIENT,0)==id: 
-                return True
-            return False
-        if role:
-            if role.lower()==Constants.ROLE_CLIENT:
+    def get_roleid_with_username(username):
+        db=DatabaseConn()
+        id=[]
+        try:
+            q_res=db.execute_query_with_args(PredefinedQueries.get_role_by_username,{"userName":username})
+            if not len(q_res)==0:
+                for row in q_res:
+                    if not row.roleid==None:
+                        id.append(int(row.roleid))
+                return id
+        except Exception as e:
+            return None
+        return None
+
+    def isStaff(id=None,username=None):
+        if username:
+            #Get the role id from database
+            id=RoleMappings.get_roleid_with_username(username)
+        if not id==None:
+            if type(id)==int:
+                id=[id]
+            if RoleMappings.role_name_id_mapping.get(Constants.ROLE_STAFF,0) in id: 
                 return True
         return False
     
-    def isVolunteer(id=None,role=None):
-        if id:
-            if RoleMappings.role_name_id_mapping.get(Constants.ROLE_VOLUNTEER,0)==id: 
+    def isDonor(id=None,username=None):
+        if username:
+            id=RoleMappings.get_roleid_with_username(username)
+        if not id==None:
+            if type(id)==int:
+                id=[id]
+            if RoleMappings.role_name_id_mapping.get(Constants.ROLE_DONOR,0) in id: 
                 return True
             return False
-        if role:
-            if role.lower()==Constants.ROLE_VOLUNTEER:
+        return False
+    
+    def isClient(id=None,username=None):
+        if username:
+            id=RoleMappings.get_roleid_with_username(username)
+        if not id==None:
+            if type(id)==int:
+                id=[id]
+            if RoleMappings.role_name_id_mapping.get(Constants.ROLE_CLIENT,0) in id: 
                 return True
+            return False
+        return False
+    
+    def isVolunteer(id=None,username=None):
+        if username:
+            id=RoleMappings.get_roleid_with_username(username)
+        if not id==None:
+            if type(id)==int:
+                id=[id]
+            if RoleMappings.role_name_id_mapping.get(Constants.ROLE_VOLUNTEER,0) in id: 
+                return True
+            return False
         return False

@@ -208,7 +208,7 @@ class OrderUtils:
                 prev_orderid=0
             else:
                 q_res=q_res[0]
-                prev_orderid=int(q_res.max_order_id)
+                prev_orderid=int(q_res.max_order_id) if q_res.max_order_id else 0
         except Exception as e:
             return None
         #Returnig the New Order ID
@@ -293,7 +293,7 @@ class OrderStart(Resource):
         # Input: "client":"<client_id>"
         #print(f"Orders: {session["orders"]}",file=sys.stdout)
         #Validate if Current User is a Staff Member
-        if not RoleMappings.isStaff(current_user.get_role()):
+        if not RoleMappings.isStaff(username=current_user.get_id()):
             return {"message":"Only Staff Members are authorized to start an order"},400
         #Validate if Client is not Empty
         if not request.json.get("client",None):
@@ -303,7 +303,7 @@ class OrderStart(Resource):
         client_user=load_user(request.json.get("client"))
         if client_user==None:
             return {"message":"Client does not exist"},400
-        if not RoleMappings.isClient(client_user.get_role()):
+        if not RoleMappings.isClient(username=client_user.get_id()):
             return {"message":f"User not registered as a Client"},400
         
         #Validate if the Client already has an ongoing order
@@ -374,8 +374,10 @@ class Inventory(Resource):
         #   sub_category -> Priority 2 (Needs Category too)
 
         #Get list of all Items
-        category=request.json.get("mainCategory",None)
-        sub_category=request.json.get("sub_category",None)
+        category=request.args.get("mainCategory",None)
+        sub_category=request.args.get("sub_category",None)
+        OrderID=request.args.get("OrderID",None)
+        client=request.args.get("client",None)
         get_inventory_query=PredefinedQueries.get_inventory_items_with_subcategory
         get_inventory_payload={"mainCategory":category,"subCategory":sub_category}
         if not sub_category:
@@ -386,8 +388,8 @@ class Inventory(Resource):
             get_inventory_payload.pop("mainCategory")
         
         # Getting the current Cart Items by either clientid or orderid
-        current_order=OrderUtils.get_order_with_orderid_or_clientid(OrderID=request.json.get("OrderID",None),
-                                                                    client=request.json.get("client",None))
+        current_order=OrderUtils.get_order_with_orderid_or_clientid(OrderID=OrderID,
+                                                                    client=client)
         if current_order==None:
             return {"message":"Order Does not exist for this Client or OrderID. Please Create an Order to view Inventory"},400
         current_cart=OrderUtils.get_current_shopping_cart(current_order["OrderID"])
@@ -453,7 +455,7 @@ class OrderPlace(Resource):
         supervisor=load_user(request.json.get("supervisor"))
         if supervisor==None:
             return {"message":"Supervisor does not exist"},400
-        if not RoleMappings.isStaff(supervisor.get_role()):
+        if not RoleMappings.isStaff(username=supervisor.get_id()):
             return {"message":f"User not registered as a Staff"},400
         #Add a Validation Check the current item isnt in ItemIn Table
         db=DatabaseConn()
@@ -511,9 +513,9 @@ class OrderDelete(Resource):
         return {"message":f"Removed Order: {removed_order["OrderID"]} with the Items: {removed_order["cart"]}"},200
     
 class OrderLocations(Resource):
-    #Input: "OrderID":<order_id> or "client":<clien_id>
+    #Input: "OrderID":<order_id>
     def get(self):
-        OrderID=request.json.get("OrderID",None)
+        OrderID=request.args.get("OrderID",None)
         #Checking if the OrderID is empty
         if OrderID==None:
             return {"message":"Order Empty Cannot be Null or Empty"},400

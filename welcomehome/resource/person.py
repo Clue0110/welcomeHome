@@ -37,15 +37,18 @@ class VolunteerScoreboard(Resource):
         #   "start_date":<starting date>
         #   "end_date":<ending date>
         
+        start_date_str=request.args.get("start_date",None)
+        end_date_str=request.args.get("end_date",None)
+
         # Considering start_date and end_date are required inputs
-        if not request.json.get("start_date"):
+        if not start_date_str:
             return {"message":"Start Date cannot be Empty"},400
-        if not request.json.get("end_date"):
+        if not end_date_str:
             return {"message":"End Date cannot be Empty"},400
         
         #Validate if start_date < end_date
-        start_date=datetime.strptime(request.json.get("start_date"), '%d-%m-%Y').date()
-        end_date=datetime.strptime(request.json.get("end_date"), '%d-%m-%Y').date()
+        start_date=datetime.strptime(start_date_str, '%d-%m-%Y').date()
+        end_date=datetime.strptime(end_date_str, '%d-%m-%Y').date()
         if end_date<start_date:
             return {"message":"Invalid Start and End Dates, End Date should be after Start Date"},400
         
